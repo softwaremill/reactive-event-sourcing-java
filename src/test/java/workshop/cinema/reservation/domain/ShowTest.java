@@ -111,7 +111,7 @@ class ShowTest {
         //then
         assertThat(result).isEqualTo(SEAT_NOT_RESERVED);
     }
-    
+
     private Show apply(Show show, List<ShowEvent> events) {
         return events.foldLeft(show, Show::apply);
     }
