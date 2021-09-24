@@ -47,6 +47,7 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
     @Override
     public CommandHandlerWithReply<ShowEntityCommand, ShowEvent, Show> commandHandler() {
         return newCommandHandlerWithReplyBuilder().forStateType(Show.class)
+                .onCommand(ShowEntityCommand.GetShow.class, this::returnState)
                 .onCommand(ShowEntityCommand.ShowCommandEnvelope.class, this::handleShowCommand)
                 .build();
     }
@@ -66,7 +67,10 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
                 }
         );
     }
-    //endregion
+
+    private ReplyEffect<ShowEvent, Show> returnState(Show show, ShowEntityCommand.GetShow getShow) {
+        return Effect().reply(getShow.replyTo(), show);
+    }
 
     @Override
     public EventHandler<Show, ShowEvent> eventHandler() {

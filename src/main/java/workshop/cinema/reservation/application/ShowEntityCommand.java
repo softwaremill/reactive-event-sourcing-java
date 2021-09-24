@@ -10,4 +10,7 @@ public sealed interface ShowEntityCommand extends Serializable {
 
     record ShowCommandEnvelope(ShowCommand command, ActorRef<ShowEntityResponse> replyTo) implements ShowEntityCommand {
     }
+
+    record GetShow(ActorRef<Show> replyTo) implements ShowEntityCommand {
+    }
 }

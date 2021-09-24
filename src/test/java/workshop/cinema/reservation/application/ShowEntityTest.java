@@ -12,7 +12,6 @@ import workshop.cinema.reservation.application.ShowEntityCommand.ShowCommandEnve
 import workshop.cinema.reservation.application.ShowEntityResponse.CommandProcessed;
 import workshop.cinema.reservation.application.ShowEntityResponse.CommandRejected;
 import workshop.cinema.reservation.domain.FixedClock;
-import workshop.cinema.reservation.domain.Seat;
 import workshop.cinema.reservation.domain.Show;
 import workshop.cinema.reservation.domain.ShowCommand;
 import workshop.cinema.reservation.domain.ShowCommand.CancelSeatReservation;
@@ -41,7 +40,7 @@ class ShowEntityTest {
     public static void cleanUp() {
         testKit.shutdownTestKit();
     }
-
+    
     private Clock clock = new FixedClock();
 
     @Test
@@ -102,6 +101,7 @@ class ShowEntityTest {
         var showId = ShowId.of();
         var showEntityRef = testKit.spawn(ShowEntity.create(showId, clock));
         var commandResponseProbe = testKit.<ShowEntityResponse>createTestProbe();
+        var showResponseProbe = testKit.<Show>createTestProbe();
 
         var reserveSeat = randomReserveSeat(showId);
 
@@ -110,6 +110,13 @@ class ShowEntityTest {
 
         //then
         commandResponseProbe.expectMessageClass(CommandProcessed.class);
+
+        //when
+        showEntityRef.tell(new ShowEntityCommand.GetShow(showResponseProbe.ref()));
+
+        //then
+        Show returnedShow = showResponseProbe.receiveMessage();
+        assertThat(returnedShow.seats().get(reserveSeat.seatNumber()).get().isReserved()).isTrue();
     }
 
     private ShowCommandEnvelope toEnvelope(ShowCommand command, ActorRef<ShowEntityResponse> replyTo) {
