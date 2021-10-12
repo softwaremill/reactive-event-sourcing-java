@@ -11,7 +11,7 @@
 
     <logger name="workshop" level="DEBUG"/>
     <!--    <logger name="akka" level="DEBUG"/>-->
-    <!--    <logger name="akka.persistence.typed.internal.EventSourcedBehaviorImpl" level="DEBUG"/>-->
+    <logger name="akka.persistence.typed.internal.EventSourcedBehaviorImpl" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="STDOUT"/>

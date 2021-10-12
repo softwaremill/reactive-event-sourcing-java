@@ -3,6 +3,7 @@ package workshop.cinema.reservation.application;
 import akka.actor.typed.Behavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
+import akka.cluster.sharding.typed.javadsl.EntityTypeKey;
 import akka.persistence.typed.PersistenceId;
 import akka.persistence.typed.javadsl.CommandHandlerWithReply;
 import akka.persistence.typed.javadsl.EventHandler;
@@ -17,6 +18,9 @@ import workshop.cinema.reservation.domain.ShowEvent;
 import workshop.cinema.reservation.domain.ShowId;
 
 public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEntityCommand, ShowEvent, Show> {
+
+    public static final EntityTypeKey<ShowEntityCommand> SHOW_ENTITY_TYPE_KEY =
+            EntityTypeKey.create(ShowEntityCommand.class, "Show");
 
     private final ShowId showId;
     private final Clock clock;
@@ -33,7 +37,7 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
     public static Behavior<ShowEntityCommand> create(ShowId showId,
                                                      Clock clock) {
         return Behaviors.setup(context -> {
-            PersistenceId persistenceId = PersistenceId.of("Show", showId.id().toString());
+            PersistenceId persistenceId = PersistenceId.of(SHOW_ENTITY_TYPE_KEY.name(), showId.id().toString());
             context.getLog().info("ShowEntity {} initialization started", showId);
             return new ShowEntity(persistenceId, showId, clock, context);
         });
