@@ -1,0 +1,19 @@
+GET http://localhost:8080/shows/{{show-id}}
+
+###
+
+PATCH http://localhost:8080/shows/{{show-id}}/seats/1
+Content-Type: application/json
+
+{
+  "action": "RESERVE"
+}
+
+###
+
+PATCH http://localhost:8080/shows/{{show-id}}/seats/1
+Content-Type: application/json
+
+{
+  "action": "CANCEL_RESERVATION"
+}
