@@ -20,7 +20,7 @@ import static workshop.cinema.reservation.application.ShowEntity.SHOW_ENTITY_TYP
 public class ShowService {
 
     private final ClusterSharding sharding;
-    private Duration askTimeout = Duration.ofSeconds(2); //TODO should be configurable
+    private Duration askTimeout = Duration.ofSeconds(5); //TODO should be configurable
 
     public ShowService(ClusterSharding sharding, Clock clock) {
         this.sharding = sharding;

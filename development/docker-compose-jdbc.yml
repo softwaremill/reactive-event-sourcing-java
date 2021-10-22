@@ -1,0 +1,14 @@
+version: '3'
+
+services:
+  postgres:
+    container_name: postgres_container
+    image: postgres:12
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - ./create_journal_and_snapshot_tables.sql:/docker-entrypoint-initdb.d/akka.sql
+    ports:
+      - "5432:5432"

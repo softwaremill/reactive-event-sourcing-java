@@ -10,3 +10,5 @@ This repository is a demo for a series of articles about implementing Event Sour
    tag [part_3](https://github.com/softwaremill/reactive-event-sourcing-java/releases/tag/part_3)
 4. [Reactive Event Sourcing in Java, Part 4: Controller](https://softwaremill.com/reactive-event-sourcing-in-java-part-4-controller) -
    tag [part_4](https://github.com/softwaremill/reactive-event-sourcing-java/releases/tag/part_4)
+5. [Reactive Event Sourcing in Java, Part 5: Event Store](https://softwaremill.com/reactive-event-sourcing-in-java-part-5-event-store) -
+   tag [part_5](https://github.com/softwaremill/reactive-event-sourcing-java/releases/tag/part_5)

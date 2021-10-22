@@ -47,6 +47,11 @@
         </dependency>
 
         <dependency>
+            <groupId>com.typesafe.akka</groupId>
+            <artifactId>akka-persistence-cassandra_${scala.binary.version}</artifactId>
+            <version>1.0.5</version>
+        </dependency>
+        <dependency>
             <groupId>com.lightbend.akka</groupId>
             <artifactId>akka-persistence-jdbc_${scala.binary.version}</artifactId>
             <version>5.0.4</version>
@@ -111,7 +116,7 @@
             <groupId>com.typesafe.akka</groupId>
             <artifactId>akka-persistence-testkit_${scala.binary.version}</artifactId>
             <version>${akka.version}</version>
-            <scope>compile</scope>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.tngtech.archunit</groupId>

@@ -2,7 +2,6 @@ package workshop.cinema.base;
 
 import akka.actor.typed.ActorSystem;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
-import akka.persistence.testkit.PersistenceTestKitPlugin;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +14,7 @@ public class BaseConfiguration {
 
     @Bean
     public Config config() {
-        return PersistenceTestKitPlugin.config().withFallback(ConfigFactory.load());
+        return ConfigFactory.load();
     }
 
     @Bean(destroyMethod = "terminate")
