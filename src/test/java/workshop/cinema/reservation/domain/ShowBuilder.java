@@ -8,6 +8,7 @@ import static workshop.cinema.reservation.domain.DomainGenerators.randomShowId;
 
 public class ShowBuilder {
 
+    final static int MAX_SEATS = 100;
     private ShowId id = randomShowId();
     private String title = "Random title";
     private Map<SeatNumber, Seat> seats = HashMap.empty();
@@ -17,7 +18,7 @@ public class ShowBuilder {
     }
 
     public ShowBuilder withRandomSeats() {
-        seats = SeatsCreator.createSeats(randomPrice());
+        seats = ShowCreator.createSeats(randomPrice(), MAX_SEATS);
         return this;
     }
 

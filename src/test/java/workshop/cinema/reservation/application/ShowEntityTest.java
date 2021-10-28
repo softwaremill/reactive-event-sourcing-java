@@ -5,6 +5,7 @@ import akka.actor.typed.ActorRef;
 import akka.persistence.testkit.javadsl.EventSourcedBehaviorTestKit;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import io.vavr.control.Option;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import workshop.cinema.base.domain.Clock;
@@ -22,6 +23,7 @@ import workshop.cinema.reservation.domain.ShowId;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static workshop.cinema.reservation.domain.ShowCommandError.SEAT_NOT_AVAILABLE;
+import static workshop.cinema.reservation.domain.ShowCommandGenerators.randomCreateShow;
 import static workshop.cinema.reservation.domain.ShowCommandGenerators.randomReserveSeat;
 
 class ShowEntityTest {
@@ -40,7 +42,7 @@ class ShowEntityTest {
     public static void cleanUp() {
         testKit.shutdownTestKit();
     }
-    
+
     private Clock clock = new FixedClock();
 
     @Test
@@ -48,7 +50,10 @@ class ShowEntityTest {
         //given
         var showId = ShowId.of();
         EventSourcedBehaviorTestKit<ShowEntityCommand, ShowEvent, Show> showEntityKit = EventSourcedBehaviorTestKit.create(testKit.system(), ShowEntity.create(showId, clock));
+        var createShow = randomCreateShow(showId);
         var reserveSeat = randomReserveSeat(showId);
+
+        showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(createShow, replyTo));
 
         //when
         var result = showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(reserveSeat, replyTo));
@@ -65,10 +70,13 @@ class ShowEntityTest {
         //given
         var showId = ShowId.of();
         EventSourcedBehaviorTestKit<ShowEntityCommand, ShowEvent, Show> showEntityKit = EventSourcedBehaviorTestKit.create(testKit.system(), ShowEntity.create(showId, clock));
+        var createShow = randomCreateShow(showId);
         var reserveSeat = randomReserveSeat(showId);
 
-        //when
+        showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(createShow, replyTo));
         showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(reserveSeat, replyTo));
+
+        //when
         var result = showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(reserveSeat, replyTo));
 
         //then
@@ -81,11 +89,14 @@ class ShowEntityTest {
         //given
         var showId = ShowId.of();
         EventSourcedBehaviorTestKit<ShowEntityCommand, ShowEvent, Show> showEntityKit = EventSourcedBehaviorTestKit.create(testKit.system(), ShowEntity.create(showId, clock));
+        var createShow = randomCreateShow(showId);
         var reserveSeat = randomReserveSeat(showId);
         var cancelSeatReservation = new CancelSeatReservation(showId, reserveSeat.seatNumber());
 
-        //when
+        showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(createShow, replyTo));
         showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(reserveSeat, replyTo));
+
+        //when
         var result = showEntityKit.<ShowEntityResponse>runCommand(replyTo -> toEnvelope(cancelSeatReservation, replyTo));
 
         //then
@@ -101,9 +112,16 @@ class ShowEntityTest {
         var showId = ShowId.of();
         var showEntityRef = testKit.spawn(ShowEntity.create(showId, clock));
         var commandResponseProbe = testKit.<ShowEntityResponse>createTestProbe();
-        var showResponseProbe = testKit.<Show>createTestProbe();
+        var showResponseProbe = testKit.<Option<Show>>createTestProbe();
 
+        var createShow = randomCreateShow(showId);
         var reserveSeat = randomReserveSeat(showId);
+
+        //when
+        showEntityRef.tell(toEnvelope(createShow, commandResponseProbe.ref()));
+
+        //then
+        commandResponseProbe.expectMessageClass(CommandProcessed.class);
 
         //when
         showEntityRef.tell(toEnvelope(reserveSeat, commandResponseProbe.ref()));
@@ -115,7 +133,7 @@ class ShowEntityTest {
         showEntityRef.tell(new ShowEntityCommand.GetShow(showResponseProbe.ref()));
 
         //then
-        Show returnedShow = showResponseProbe.receiveMessage();
+        Show returnedShow = showResponseProbe.receiveMessage().get();
         assertThat(returnedShow.seats().get(reserveSeat.seatNumber()).get().isReserved()).isTrue();
     }
 

@@ -12,15 +12,47 @@ import java.time.Instant;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static workshop.cinema.reservation.domain.DomainGenerators.randomShow;
+import static workshop.cinema.reservation.domain.DomainGenerators.randomShowId;
 import static workshop.cinema.reservation.domain.ShowBuilder.showBuilder;
 import static workshop.cinema.reservation.domain.ShowCommandError.SEAT_NOT_AVAILABLE;
 import static workshop.cinema.reservation.domain.ShowCommandError.SEAT_NOT_EXISTS;
 import static workshop.cinema.reservation.domain.ShowCommandError.SEAT_NOT_RESERVED;
+import static workshop.cinema.reservation.domain.ShowCommandError.SHOW_ALREADY_EXISTS;
+import static workshop.cinema.reservation.domain.ShowCommandGenerators.randomCreateShow;
 import static workshop.cinema.reservation.domain.ShowCommandGenerators.randomReserveSeat;
 
 class ShowTest {
 
     private Clock clock = new FixedClock(Instant.now());
+
+    @Test
+    public void shouldCreateTheShow() {
+        //given
+        ShowId showId = randomShowId();
+        var createShow = randomCreateShow(showId);
+
+        //when
+        var showCreated = ShowCreator.create(createShow, clock).get();
+        var show = Show.create(showCreated);
+
+        //then
+        assertThat(show.id()).isEqualTo(showId);
+        assertThat(show.title()).isEqualTo(createShow.title());
+        assertThat(show.seats()).hasSize(createShow.maxSeats());
+    }
+
+    @Test
+    public void shouldNotProcessCreateShowCommandForExistingShow() {
+        //given
+        var show = randomShow();
+        var createShow = randomCreateShow(show.id());
+
+        //when
+        var error = show.process(createShow, clock).getLeft();
+
+        //then
+        assertThat(error).isEqualTo(SHOW_ALREADY_EXISTS);
+    }
 
     @Test
     public void shouldReserveTheSeat() {
@@ -75,7 +107,7 @@ class ShowTest {
     public void shouldNotReserveNotExistingSeat() {
         //given
         var show = randomShow();
-        var reserveSeat = new ShowCommand.ReserveSeat(show.id(), new SeatNumber(SeatsCreator.SEAT_RANGE.last() + 1));
+        var reserveSeat = new ShowCommand.ReserveSeat(show.id(), new SeatNumber(ShowBuilder.MAX_SEATS + 1));
 
         //when
         ShowCommandError result = show.process(reserveSeat, clock).getLeft();

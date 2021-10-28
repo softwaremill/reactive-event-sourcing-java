@@ -5,29 +5,31 @@ import io.vavr.collection.Map;
 import io.vavr.control.Either;
 import workshop.cinema.base.domain.Clock;
 import workshop.cinema.reservation.domain.ShowCommand.CancelSeatReservation;
+import workshop.cinema.reservation.domain.ShowCommand.CreateShow;
 import workshop.cinema.reservation.domain.ShowCommand.ReserveSeat;
 import workshop.cinema.reservation.domain.ShowEvent.SeatReservationCancelled;
 import workshop.cinema.reservation.domain.ShowEvent.SeatReserved;
+import workshop.cinema.reservation.domain.ShowEvent.ShowCreated;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 
 import static io.vavr.control.Either.left;
 import static io.vavr.control.Either.right;
 import static workshop.cinema.reservation.domain.ShowCommandError.SEAT_NOT_AVAILABLE;
 import static workshop.cinema.reservation.domain.ShowCommandError.SEAT_NOT_EXISTS;
 import static workshop.cinema.reservation.domain.ShowCommandError.SEAT_NOT_RESERVED;
+import static workshop.cinema.reservation.domain.ShowCommandError.SHOW_ALREADY_EXISTS;
 
 public record Show(ShowId id, String title, Map<SeatNumber, Seat> seats) implements Serializable {
 
-    public static final BigDecimal INITIAL_PRICE = new BigDecimal("100");
-
-    public static Show create(ShowId showId) {
-        return new Show(showId, "Show title " + showId.id(), SeatsCreator.createSeats(INITIAL_PRICE));
+    public static Show create(ShowCreated showCreated) {
+        InitialShow initialShow = showCreated.initialShow();
+        return new Show(initialShow.id(), initialShow.title(), initialShow.seats());
     }
 
     public Either<ShowCommandError, List<ShowEvent>> process(ShowCommand command, Clock clock) {
         return switch (command) {
+            case CreateShow ignored -> left(SHOW_ALREADY_EXISTS);
             case ReserveSeat reserveSeat -> handleReservation(reserveSeat, clock);
             case CancelSeatReservation cancelSeatReservation -> handleCancellation(cancelSeatReservation, clock);
         };
@@ -57,6 +59,7 @@ public record Show(ShowId id, String title, Map<SeatNumber, Seat> seats) impleme
 
     public Show apply(ShowEvent event) {
         return switch (event) {
+            case ShowCreated ignored -> throw new IllegalStateException("Show is already created, use Show.create instead.");
             case SeatReserved seatReserved -> applyReserved(seatReserved);
             case SeatReservationCancelled seatReservationCancelled -> applyReservationCancelled(seatReservationCancelled);
         };

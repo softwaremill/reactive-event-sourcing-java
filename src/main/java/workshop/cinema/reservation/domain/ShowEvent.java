@@ -8,6 +8,9 @@ public sealed interface ShowEvent extends Serializable {
 
     Instant createdAt();
 
+    record ShowCreated(ShowId showId, Instant createdAt, InitialShow initialShow) implements ShowEvent {
+    }
+
     record SeatReserved(ShowId showId, Instant createdAt, SeatNumber seatNumber) implements ShowEvent {
     }
 

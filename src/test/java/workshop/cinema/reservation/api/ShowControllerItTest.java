@@ -12,10 +12,11 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 
 import static workshop.cinema.reservation.api.Action.CANCEL_RESERVATION;
 import static workshop.cinema.reservation.api.Action.RESERVE;
-import static workshop.cinema.reservation.domain.DomainGenerators.randomSeatNumber;
 import static workshop.cinema.reservation.domain.DomainGenerators.randomShowId;
 
-
+/**
+ * Run `docker-compose -f docker-compose-jdbc.yml up` in `development` folder
+ */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 class ShowControllerItTest {
@@ -24,9 +25,20 @@ class ShowControllerItTest {
     private WebTestClient webClient;
 
     @Test
+    public void shouldCreateShow() {
+        //given
+        var createShowRequest = new CreateShowRequest(randomShowId().id(), "title", 10);
+
+        //when //then
+        createShow(createShowRequest);
+    }
+
+    @Test
     public void shouldGetShowById() {
         //given
-        String showId = randomShowId().id().toString();
+        var createShowRequest = new CreateShowRequest(randomShowId().id(), "title", 10);
+        var showId = createShowRequest.showId().toString();
+        createShow(createShowRequest);
 
         //when //then
         webClient.get().uri("/shows/{showId}", showId)
@@ -36,10 +48,23 @@ class ShowControllerItTest {
     }
 
     @Test
+    public void shouldGetNotFoundForNotExistingShow() {
+        //given
+        var showId = randomShowId().id().toString();
+
+        //when //then
+        webClient.get().uri("/shows/{showId}", showId)
+                .exchange()
+                .expectStatus().isNotFound();
+    }
+
+    @Test
     public void shouldReserveSeat() {
         //given
-        String showId = randomShowId().id().toString();
-        int seatNum = randomSeatNumber().value();
+        var createShowRequest = new CreateShowRequest(randomShowId().id(), "title", 10);
+        var showId = createShowRequest.showId().toString();
+        createShow(createShowRequest);
+        int seatNum = 8;
 
         //when //then
         webClient.patch().uri("/shows/{showId}/seats/{seatNum}", showId, seatNum)
@@ -51,8 +76,10 @@ class ShowControllerItTest {
     @Test
     public void shouldNotReserveTheSameSeat() {
         //given
-        String showId = randomShowId().id().toString();
-        int seatNum = randomSeatNumber().value();
+        var createShowRequest = new CreateShowRequest(randomShowId().id(), "title", 10);
+        var showId = createShowRequest.showId().toString();
+        createShow(createShowRequest);
+        int seatNum = 8;
 
         //when //then
         webClient.patch().uri("/shows/{showId}/seats/{seatNum}", showId, seatNum)
@@ -70,8 +97,10 @@ class ShowControllerItTest {
     @Test
     public void shouldCancelReservation() {
         //given
-        String showId = randomShowId().id().toString();
-        int seatNum = randomSeatNumber().value();
+        var createShowRequest = new CreateShowRequest(randomShowId().id(), "title", 10);
+        var showId = createShowRequest.showId().toString();
+        createShow(createShowRequest);
+        int seatNum = 8;
 
         //when //then
         webClient.patch().uri("/shows/{showId}/seats/{seatNum}", showId, seatNum)
@@ -103,6 +132,13 @@ class ShowControllerItTest {
                 }
             }
         };
+    }
+
+    private void createShow(CreateShowRequest createShowRequest) {
+        webClient.post().uri("/shows")
+                .bodyValue(createShowRequest)
+                .exchange()
+                .expectStatus().isCreated();
     }
 
 }

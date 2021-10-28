@@ -23,7 +23,7 @@ public class DomainGenerators {
     }
 
     public static SeatNumber randomSeatNumber() {
-        return new SeatNumber(SeatsCreator.SEAT_RANGE.get(random.nextInt(SeatsCreator.SEAT_RANGE.size())));
+        return new SeatNumber(random.nextInt(ShowBuilder.MAX_SEATS));
     }
 
     public static Show randomShow() {

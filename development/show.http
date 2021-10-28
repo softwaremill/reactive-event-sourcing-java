@@ -1,3 +1,14 @@
+POST http://localhost:8080/shows
+Content-Type: application/json
+
+{
+  "showId": "{{show-id}}",
+  "title": "show title {{$randomInt}}",
+  "maxSeats": 100
+}
+
+###
+
 GET http://localhost:8080/shows/{{show-id}}
 
 ###

@@ -3,11 +3,13 @@ package workshop.cinema.reservation.application;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import akka.cluster.sharding.typed.javadsl.Entity;
 import akka.cluster.sharding.typed.javadsl.EntityRef;
+import io.vavr.control.Option;
 import workshop.cinema.base.domain.Clock;
 import workshop.cinema.reservation.domain.SeatNumber;
 import workshop.cinema.reservation.domain.Show;
 import workshop.cinema.reservation.domain.ShowCommand;
 import workshop.cinema.reservation.domain.ShowCommand.CancelSeatReservation;
+import workshop.cinema.reservation.domain.ShowCommand.CreateShow;
 import workshop.cinema.reservation.domain.ShowCommand.ReserveSeat;
 import workshop.cinema.reservation.domain.ShowId;
 
@@ -30,7 +32,11 @@ public class ShowService {
         }));
     }
 
-    public CompletionStage<Show> findShowBy(ShowId showId) {
+    public CompletionStage<ShowEntityResponse> createShow(ShowId showId, String title, int maxSeats) {
+        return processCommand(new CreateShow(showId, title, maxSeats));
+    }
+
+    public CompletionStage<Option<Show>> findShowBy(ShowId showId) {
         return getShowEntityRef(showId).ask(replyTo -> new ShowEntityCommand.GetShow(replyTo), askTimeout);
     }
 

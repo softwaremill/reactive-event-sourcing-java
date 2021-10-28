@@ -13,7 +13,7 @@
     <version>1.0</version>
 
     <properties>
-        <akka.version>2.6.16</akka.version>
+        <akka.version>2.6.19</akka.version>
         <slick.version>3.3.3</slick.version>
         <scala.binary.version>2.13</scala.binary.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
