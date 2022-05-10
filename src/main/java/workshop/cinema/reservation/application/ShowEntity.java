@@ -25,12 +25,15 @@ import workshop.cinema.reservation.domain.ShowEvent;
 import workshop.cinema.reservation.domain.ShowEvent.ShowCreated;
 import workshop.cinema.reservation.domain.ShowId;
 
+import java.util.Set;
+
 import static workshop.cinema.reservation.domain.ShowCommandError.SHOW_NOT_EXISTS;
 
 public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEntityCommand, ShowEvent, Show> {
 
     public static final EntityTypeKey<ShowEntityCommand> SHOW_ENTITY_TYPE_KEY =
             EntityTypeKey.create(ShowEntityCommand.class, "Show");
+    public static final String SHOW_EVENT_TAG = "ShowEvent";
 
     private final ShowId showId;
     private final Clock clock;
@@ -43,10 +46,14 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
         this.context = context;
     }
 
+    public static PersistenceId persistenceId(ShowId showId) {
+        return PersistenceId.of(SHOW_ENTITY_TYPE_KEY.name(), showId.id().toString());
+    }
+
     public static Behavior<ShowEntityCommand> create(ShowId showId,
                                                      Clock clock) {
         return Behaviors.setup(context -> {
-            PersistenceId persistenceId = PersistenceId.of(SHOW_ENTITY_TYPE_KEY.name(), showId.id().toString());
+            PersistenceId persistenceId = ShowEntity.persistenceId(showId);
             context.getLog().info("ShowEntity {} initialization started", showId);
             return new ShowEntity(persistenceId, showId, clock, context);
         });
@@ -122,5 +129,10 @@ public class ShowEntity extends EventSourcedBehaviorWithEnforcedReplies<ShowEnti
                 .onAnyEvent(Show::apply);
 
         return builder.build();
+    }
+
+    @Override
+    public Set<String> tagsFor(ShowEvent showEvent) {
+        return Set.of(SHOW_EVENT_TAG);
     }
 }

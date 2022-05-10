@@ -14,3 +14,5 @@ This repository is a demo for a series of articles about implementing Event Sour
    tag [part_5](https://github.com/softwaremill/reactive-event-sourcing-java/releases/tag/part_5)
 6. [Reactive Event Sourcing in Java, Part 6: Event Store](https://softwaremill.com/reactive-event-sourcing-in-java-part-6-empty-state) -
    tag [part_6](https://github.com/softwaremill/reactive-event-sourcing-java/releases/tag/part_6)
+7. [Reactive Event Sourcing in Java, Part 7: Read Model](https://softwaremill.com/reactive-event-sourcing-in-java-part-7-read-model) -
+   tag [part_7](https://github.com/softwaremill/reactive-event-sourcing-java/releases/tag/part_7)
