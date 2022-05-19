@@ -1,12 +1,13 @@
 package workshop.cinema.base;
 
 import akka.actor.typed.ActorSystem;
+import akka.actor.typed.SpawnProtocol;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import workshop.cinema.base.application.VoidBehavior;
+import workshop.cinema.base.application.SpawningBehavior;
 import workshop.cinema.base.domain.Clock;
 
 @Configuration
@@ -18,8 +19,8 @@ public class BaseConfiguration {
     }
 
     @Bean(destroyMethod = "terminate")
-    public ActorSystem<Void> actorSystem(Config config) {
-        return ActorSystem.create(VoidBehavior.create(), "es-workshop", config);
+    public ActorSystem<SpawnProtocol.Command> actorSystem(Config config) {
+        return ActorSystem.create(SpawningBehavior.create(), "es-workshop", config);
     }
 
     @Bean

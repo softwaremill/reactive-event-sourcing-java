@@ -1,47 +1,45 @@
 package workshop.cinema.reservation.application.projection;
 
-import akka.Done;
 import akka.actor.typed.ActorSystem;
-import akka.persistence.query.EventEnvelope;
-import akka.persistence.query.javadsl.EventsByPersistenceIdQuery;
+import akka.persistence.query.Offset;
+import akka.projection.Projection;
+import akka.projection.ProjectionId;
+import akka.projection.eventsourced.EventEnvelope;
+import akka.projection.javadsl.SourceProvider;
+import akka.projection.jdbc.javadsl.JdbcProjection;
 import workshop.cinema.reservation.domain.ShowEvent;
-import workshop.cinema.reservation.domain.ShowEvent.SeatReservationCancelled;
-import workshop.cinema.reservation.domain.ShowEvent.SeatReserved;
-import workshop.cinema.reservation.domain.ShowEvent.ShowCreated;
 
-import java.util.concurrent.CompletionStage;
+import javax.sql.DataSource;
+import java.time.Duration;
+
+import static akka.projection.HandlerRecoveryStrategy.retryAndFail;
+import static java.time.Duration.ofSeconds;
 
 public class ShowViewProjection {
 
-    private final ShowViewRepository showViewRepository;
+    public static final ProjectionId PROJECTION_ID = ProjectionId.of("show-events", "show-view");
+
     private final ActorSystem<?> actorSystem;
-    private final EventsByPersistenceIdQuery byPersistenceIdQuery;
+    private final DataSource dataSource;
+    private final ShowViewEventHandler showViewEventHandler;
+    private final int saveOffsetAfterEnvelopes = 100;
+    private final Duration saveOffsetAfterDuration = Duration.ofMillis(500);
 
-    public ShowViewProjection(EventsByPersistenceIdQuery byPersistenceIdQuery, ActorSystem<?> actorSystem, ShowViewRepository showViewRepository) {
-        this.byPersistenceIdQuery = byPersistenceIdQuery;
+    public ShowViewProjection(ActorSystem<?> actorSystem, DataSource dataSource, ShowViewEventHandler showViewEventHandler) {
         this.actorSystem = actorSystem;
-        this.showViewRepository = showViewRepository;
+        this.dataSource = dataSource;
+        this.showViewEventHandler = showViewEventHandler;
     }
 
-    public CompletionStage<Done> run(String persistenceId) {
-        long from = 0;
-        long to = Long.MAX_VALUE;
-        return byPersistenceIdQuery.eventsByPersistenceId(persistenceId, from, to)
-                .mapAsync(1, this::processEvent)
-                .run(actorSystem);
+    public Projection<EventEnvelope<ShowEvent>> create(SourceProvider<Offset, EventEnvelope<ShowEvent>> sourceProvider) {
+        return JdbcProjection.atLeastOnceAsync(
+                        PROJECTION_ID,
+                        sourceProvider,
+                        () -> new DataSourceJdbcSession(dataSource),
+                        () -> showViewEventHandler,
+                        actorSystem)
+                .withSaveOffset(saveOffsetAfterEnvelopes, saveOffsetAfterDuration)
+                .withRecoveryStrategy(retryAndFail(4, ofSeconds(5))) //could be configured in application.conf
+                .withRestartBackoff(ofSeconds(3), ofSeconds(30), 0.1d); //could be configured in application.conf
     }
-
-    private CompletionStage<Done> processEvent(EventEnvelope eventEnvelope) {
-        if (eventEnvelope.event() instanceof ShowEvent showEvent) {
-            return switch (showEvent) {
-                case ShowCreated showCreated -> showViewRepository.save(showCreated.showId(), showCreated.initialShow().seats().size());
-                case SeatReserved seatReserved -> showViewRepository.decrementAvailability(seatReserved.showId());
-                case SeatReservationCancelled seatReservationCancelled -> showViewRepository.incrementAvailability(seatReservationCancelled.showId());
-            };
-        } else {
-            throw new IllegalStateException("Unrecognized event type");
-        }
-    }
-
-
 }
