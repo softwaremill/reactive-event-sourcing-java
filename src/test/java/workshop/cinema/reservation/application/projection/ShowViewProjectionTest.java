@@ -17,7 +17,6 @@ import workshop.cinema.reservation.application.ShowService;
 import workshop.cinema.reservation.domain.SeatNumber;
 import workshop.cinema.reservation.domain.ShowId;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -35,7 +34,7 @@ class ShowViewProjectionTest {
     private ClusterSharding sharding = ClusterSharding.get(system);
     private Clock clock = new Clock.UtcClock();
 
-    private ReservationConfiguration reservationConfiguration = new ReservationConfiguration(system, sharding, clock);
+    private ReservationConfiguration reservationConfiguration = new ReservationConfiguration(system, sharding, clock, config);
     private ShowService showService = reservationConfiguration.showService();
     private ShowViewRepository showViewRepository = reservationConfiguration.showViewRepository();
     private ProjectionLauncher projectionLauncher = reservationConfiguration.projectionLauncher(showViewRepository);

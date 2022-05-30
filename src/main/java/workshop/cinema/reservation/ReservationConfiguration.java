@@ -8,6 +8,7 @@ import akka.persistence.query.Offset;
 import akka.projection.eventsourced.EventEnvelope;
 import akka.projection.eventsourced.javadsl.EventSourcedProvider;
 import akka.projection.javadsl.SourceProvider;
+import com.typesafe.config.Config;
 import com.zaxxer.hikari.HikariDataSource;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -28,15 +29,15 @@ public class ReservationConfiguration {
 
     private final ActorSystem<SpawnProtocol.Command> system;
     private final ClusterSharding sharding;
+    private final Clock clock;
+    private final Config config;
 
-    public ReservationConfiguration(ActorSystem<SpawnProtocol.Command> system, ClusterSharding sharding, Clock clock) {
+    public ReservationConfiguration(ActorSystem<SpawnProtocol.Command> system, ClusterSharding sharding, Clock clock, Config config) {
         this.system = system;
         this.sharding = sharding;
         this.clock = clock;
+        this.config = config;
     }
-
-    private final Clock clock;
-
 
     @Bean
     public ShowService showService() {
@@ -53,7 +54,7 @@ public class ReservationConfiguration {
         ShowViewEventHandler showViewEventHandler = new ShowViewEventHandler(showViewRepository);
         SourceProvider<Offset, EventEnvelope<ShowEvent>> sourceProvider = EventSourcedProvider.eventsByTag(system, JdbcReadJournal.Identifier(), ShowEntity.SHOW_EVENT_TAG);
         ShowViewProjection showViewProjection = new ShowViewProjection(system, dataSource(), showViewEventHandler);
-        ProjectionLauncher projectionLauncher = new ProjectionLauncher(system);
+        ProjectionLauncher projectionLauncher = new ProjectionLauncher(system, config);
         projectionLauncher.withLocalProjections(showViewProjection.create(sourceProvider));
         return projectionLauncher;
     }

@@ -13,6 +13,7 @@ import akka.projection.Projection;
 import akka.projection.ProjectionBehavior;
 import akka.projection.ProjectionId;
 import akka.projection.eventsourced.EventEnvelope;
+import com.typesafe.config.Config;
 import io.vavr.Tuple2;
 import io.vavr.collection.List;
 import org.slf4j.Logger;
@@ -29,13 +30,15 @@ public class ProjectionLauncher {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final ActorSystem<SpawnProtocol.Command> system;
+    private Config config;
     private final Duration timeout = Duration.ofSeconds(3);
     private List<Projection<EventEnvelope<ShowEvent>>> singletonProjections = List.empty();
     private List<Projection<EventEnvelope<ShowEvent>>> localProjections = List.empty();
     private List<Tuple2<ProjectionId, ActorRef<ProjectionBehavior.Command>>> localProjectionRefs = List.empty();
 
-    public ProjectionLauncher(ActorSystem<SpawnProtocol.Command> system) {
+    public ProjectionLauncher(ActorSystem<SpawnProtocol.Command> system, Config config) {
         this.system = system;
+        this.config = config;
     }
 
     public ProjectionLauncher withSingletonProjections(Projection<EventEnvelope<ShowEvent>>... singletonProjections) {
@@ -49,15 +52,20 @@ public class ProjectionLauncher {
     }
 
     public void runProjections() {
-        runSingletonProjections();
-        runLocalProjections();
-        CoordinatedShutdown.get(system).addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate(),
-                "shutdown projections", () -> {
-                    log.info("projection shutting down started");
-                    shutdownProjections();
-                    log.info("projection shutting down finished");
-                    return CompletableFuture.completedFuture(Done.getInstance());
-                });
+        if (config.getBoolean("app.run-projections")) {
+            runSingletonProjections();
+            runLocalProjections();
+            CoordinatedShutdown.get(system).addTask(CoordinatedShutdown.PhaseBeforeActorSystemTerminate(),
+                    "shutdown projections", () -> {
+                        log.info("projection shutting down started");
+                        shutdownProjections();
+                        log.info("projection shutting down finished");
+                        return CompletableFuture.completedFuture(Done.getInstance());
+                    });
+        } else {
+            log.info("Projections disabled in application.conf");
+        }
+
     }
 
     private void runLocalProjections() {
