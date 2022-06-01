@@ -18,3 +18,18 @@ This repository is a demo for a series of articles about implementing Event Sour
    tag [part_7](https://github.com/softwaremill/reactive-event-sourcing-java/releases/tag/part_7)
 8. [Reactive Event Sourcing in Java, Part 8: Akka Projection](https://softwaremill.com/reactive-event-sourcing-in-java-part-8-akka-projection) -
    tag [part_8](https://github.com/softwaremill/reactive-event-sourcing-java/releases/tag/part_8)
+
+
+
+## Running the application
+
+1. Launch db in `development` folder:
+
+```
+docker-compose -f docker-compose-jdbc.yml up    
+```
+
+2. Launch application:
+```
+./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="--enable-preview"    
+```
