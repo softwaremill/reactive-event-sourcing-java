@@ -19,6 +19,7 @@
         <scala.binary.version>2.13</scala.binary.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.number>${git.commit.time}-${git.commit.id.abbrev}</version.number>
+        <prometheus.version>0.15.0</prometheus.version>
     </properties>
 
     <dependencies>
@@ -48,11 +49,11 @@
             <version>${akka.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.typesafe.akka</groupId>
-            <artifactId>akka-persistence-cassandra_${scala.binary.version}</artifactId>
-            <version>1.0.5</version>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>com.typesafe.akka</groupId>-->
+        <!--            <artifactId>akka-persistence-cassandra_${scala.binary.version}</artifactId>-->
+        <!--            <version>1.0.5</version>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>com.lightbend.akka</groupId>
             <artifactId>akka-persistence-jdbc_${scala.binary.version}</artifactId>
@@ -103,6 +104,34 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient</artifactId>
+            <version>${prometheus.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_hotspot</artifactId>
+            <version>${prometheus.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.prometheus</groupId>
+            <artifactId>simpleclient_common</artifactId>
+            <version>${prometheus.version}</version>
         </dependency>
 
         <dependency>

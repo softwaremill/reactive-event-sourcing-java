@@ -5,10 +5,13 @@ import akka.actor.typed.SpawnProtocol;
 import akka.cluster.sharding.typed.javadsl.ClusterSharding;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import org.springframework.boot.web.embedded.netty.NettyServerCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import workshop.cinema.base.application.SpawningBehavior;
 import workshop.cinema.base.domain.Clock;
+
+import java.util.function.Function;
 
 @Configuration
 public class BaseConfiguration {
@@ -31,5 +34,10 @@ public class BaseConfiguration {
     @Bean
     Clock clock() {
         return new Clock.UtcClock();
+    }
+
+    @Bean
+    public NettyServerCustomizer nettyServerCustomizer() {
+        return httpServer -> httpServer.metrics(true, Function.identity());
     }
 }
